@@ -1,5 +1,6 @@
 from ..dssdataloader import DSSDataLoader
-
+from abc import abstractmethod
+import logging
 
 class NonAdaptiveDSSDataLoader(DSSDataLoader):
     """
@@ -35,4 +36,25 @@ class NonAdaptiveDSSDataLoader(DSSDataLoader):
         """
         Iter function that returns the iterator of the data subset loader.
         """
+        self.resample()
         return self.subset_loader.__iter__()
+    
+    def resample(self):
+        """
+        Function that resamples the subset indices and recalculates the subset weights
+        """
+        self.subset_indices, self.subset_weights = self._resample_subset_indices()
+        print(len(self.subset_indices))
+        self.logger.debug("Subset indices length: %d", len(self.subset_indices))
+        self._refresh_subset_loader()
+        self.logger.debug("Subset loader initiated, args: %s, kwargs: %s", self.loader_args, self.loader_kwargs)
+        self.logger.debug('Subset selection finished, Training data size: %d, Subset size: %d',
+                     self.len_full, len(self.subset_loader.dataset))
+
+    @abstractmethod
+    def _resample_subset_indices(self):
+        """
+        Abstract function that needs to be implemented in the child classes. 
+        Needs implementation of subset selection implemented in child classes.
+        """
+        raise Exception('Not implemented.')
