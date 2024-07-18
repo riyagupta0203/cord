@@ -47,15 +47,16 @@ class CRAIGDataLoader(NonAdaptiveDSSDataLoader):
         self.loss = copy.deepcopy(dss_args.loss)
         self.logger.debug('Non-adaptive CRAIG dataloader loader initialized. ')
 
-    def _init_subset_loader(self):
-        """
-        Function that initializes the subset loader based on the subset indices and the subset weights.
-        """
-        # All strategies start with random selection
-        self.subset_indices, self.subset_weights = self._init_subset_indices()
-        self._refresh_subset_loader()
+#     def _subset_loader(self):
+#         """
+#         Function that initializes the subset loader based on the subset indices and the subset weights.
+#         """
+#         # All strategies start with random selection
+#         self.subset_indices, self.subset_weights = self._init_subset_indices()
+#         self._refresh_subset_loader()
+        return subset_indices, subset_weights
 
-    def _init_subset_indices(self):
+    def _resample_subset_indices(self):
         """
         Function that calls the CRAIG strategy for initial subset selection and calculating the initial subset weights.
         """
@@ -64,6 +65,7 @@ class CRAIGDataLoader(NonAdaptiveDSSDataLoader):
         cached_state_dict = copy.deepcopy(self.train_model.state_dict())
         clone_dict = copy.deepcopy(self.train_model.state_dict())
         subset_indices, subset_weights = self.strategy.select(self.budget, clone_dict)
+        self.logger.info(len(subset_indices))
         self.train_model.load_state_dict(cached_state_dict)
         end = time.time()
         self.logger.info('Epoch: {0:d}, CRAIG subset selection finished, takes {1:.4f}. '.format(self.cur_epoch, (end - start)))
